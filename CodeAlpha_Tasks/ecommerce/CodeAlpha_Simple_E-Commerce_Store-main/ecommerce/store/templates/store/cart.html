@@ -1,0 +1,94 @@
+{% extends 'store/base.html' %}
+{% block title %}Shopping Cart — ShopZone{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:2rem;">
+  <h1 class="page-title"><i class="fas fa-shopping-cart"></i> Shopping Cart</h1>
+
+  {% if cart_items %}
+  <div class="cart-layout">
+
+    <!-- Cart Items -->
+    <div class="cart-items">
+      {% for item in cart_items %}
+      <div class="cart-item">
+        <a href="{% url 'product_detail' item.product.slug %}" class="cart-item-img">
+          {% if item.product.image %}
+          <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" />
+          {% else %}
+          <div class="product-img-placeholder small"><i class="fas fa-image"></i></div>
+          {% endif %}
+        </a>
+        <div class="cart-item-info">
+          <h3><a href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a></h3>
+          {% if item.product.category %}<span class="product-category">{{ item.product.category.name }}</span>{% endif %}
+          <div class="cart-item-price">₹{{ item.product.price }} each</div>
+        </div>
+        <div class="cart-item-qty">
+          <form method="POST" action="{% url 'update_cart' item.product.id %}" class="qty-form">
+            {% csrf_token %}
+            <div class="qty-control">
+              <button type="button" onclick="changeCartQty(this, -1)">−</button>
+              <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" onchange="this.form.submit()" />
+              <button type="button" onclick="changeCartQty(this, 1)">+</button>
+            </div>
+          </form>
+        </div>
+        <div class="cart-item-subtotal">₹{{ item.subtotal }}</div>
+        <a href="{% url 'remove_from_cart' item.product.id %}" class="cart-item-remove" onclick="return confirm('Remove this item?')">
+          <i class="fas fa-trash-alt"></i>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Order Summary -->
+    <div class="cart-summary">
+      <h2>Order Summary</h2>
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>₹{{ total }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Delivery</span>
+        <span class="text-green">{% if total >= 499 %}FREE{% else %}&#8377;49{% endif %}</span>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>&#8377;{% if total >= 499 %}{{ total }}{% else %}{{ total|add:49 }}{% endif %}</span>
+      </div>
+      {% if free_remaining > 0 %}
+      <p class="free-delivery-hint">Add &#8377;{{ free_remaining }} more for FREE delivery!</p>
+      {% endif %}
+      <a href="{% url 'checkout' %}" class="btn-primary btn-block">
+        <i class="fas fa-lock"></i> Proceed to Checkout
+      </a>
+      <a href="{% url 'home' %}" class="btn-outline btn-block" style="margin-top:.75rem;">
+        <i class="fas fa-arrow-left"></i> Continue Shopping
+      </a>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-shopping-cart"></i>
+    <h3>Your cart is empty</h3>
+    <p>Looks like you haven't added anything yet.</p>
+    <a href="{% url 'home' %}" class="btn-primary">Start Shopping</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function changeCartQty(btn, delta) {
+  const form = btn.closest('.qty-form');
+  const input = form.querySelector('input[name="quantity"]');
+  let val = parseInt(input.value) + delta;
+  val = Math.max(1, Math.min(val, parseInt(input.max) || 99));
+  input.value = val;
+  form.submit();
+}
+</script>
+{% endblock %}

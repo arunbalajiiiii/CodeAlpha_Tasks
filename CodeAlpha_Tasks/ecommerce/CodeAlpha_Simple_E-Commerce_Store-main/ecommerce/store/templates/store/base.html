@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ShopZone — Premium E-Commerce{% endblock %}</title>
+  <meta name="description" content="ShopZone — Shop the latest products at the best prices. Electronics, fashion, home goods & more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="{% static 'store/css/style.css' %}" />
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="{% url 'home' %}" class="nav-brand">
+      <i class="fas fa-bolt"></i> ShopZone
+    </a>
+
+    <form class="nav-search" action="{% url 'home' %}" method="GET">
+      <input type="text" name="q" placeholder="Search products..." value="{{ request.GET.q }}" id="searchInput" />
+      <button type="submit"><i class="fas fa-search"></i></button>
+    </form>
+
+    <div class="nav-actions">
+      <a href="{% url 'cart' %}" class="nav-cart" title="Cart">
+        <i class="fas fa-shopping-cart"></i>
+        {% if cart_count > 0 %}
+        <span class="cart-badge">{{ cart_count }}</span>
+        {% endif %}
+      </a>
+      {% if user.is_authenticated %}
+      <div class="nav-user-menu">
+        <button class="nav-user-btn" onclick="toggleUserMenu()">
+          <i class="fas fa-user-circle"></i>
+          <span>{{ user.first_name|default:user.username }}</span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="user-dropdown" id="userDropdown">
+          <a href="{% url 'profile' %}"><i class="fas fa-box"></i> My Orders</a>
+          <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+      </div>
+      {% else %}
+      <a href="{% url 'login' %}" class="btn-nav-login">Login</a>
+      <a href="{% url 'register' %}" class="btn-nav-register">Register</a>
+      {% endif %}
+    </div>
+
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <form action="{% url 'home' %}" method="GET">
+      <input type="text" name="q" placeholder="Search products..." value="{{ request.GET.q }}" />
+      <button type="submit"><i class="fas fa-search"></i></button>
+    </form>
+    <a href="{% url 'cart' %}"><i class="fas fa-shopping-cart"></i> Cart ({{ cart_count }})</a>
+    {% if user.is_authenticated %}
+    <a href="{% url 'profile' %}"><i class="fas fa-box"></i> Orders</a>
+    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    {% else %}
+    <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+    <a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ── MESSAGES ── -->
+{% if messages %}
+<div class="messages-container">
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} fade-in">
+    <i class="fas fa-{% if 'success' in msg.tags %}check-circle{% elif 'error' in msg.tags %}exclamation-circle{% elif 'warning' in msg.tags %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+    {{ msg }}
+    <button onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── MAIN CONTENT ── -->
+<main class="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <h3><i class="fas fa-bolt"></i> ShopZone</h3>
+      <p>Your one-stop destination for premium products at unbeatable prices.</p>
+      <div class="footer-social">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'cart' %}">Cart</a>
+      <a href="{% url 'login' %}">Login</a>
+      <a href="{% url 'register' %}">Register</a>
+    </div>
+    <div class="footer-links">
+      <h4>Customer Service</h4>
+      <a href="#">Help Center</a>
+      <a href="#">Returns & Refunds</a>
+      <a href="#">Track Order</a>
+      <a href="#">Contact Us</a>
+    </div>
+    <div class="footer-links">
+      <h4>Payments</h4>
+      <div class="payment-icons">
+        <span><i class="fas fa-credit-card"></i> Cards</span>
+        <span><i class="fas fa-mobile-alt"></i> UPI</span>
+        <span><i class="fas fa-money-bill-wave"></i> COD</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2024 ShopZone. All rights reserved. Built for internship project.</p>
+  </div>
+</footer>
+
+<script src="{% static 'store/js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

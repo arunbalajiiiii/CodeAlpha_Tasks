@@ -1,0 +1,52 @@
+{% extends 'store/base.html' %}
+{% block title %}My Profile — ShopZone{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:2rem;">
+  <div class="profile-header">
+    <div class="profile-avatar">{{ user.first_name.0|upper|default:user.username.0|upper }}</div>
+    <div>
+      <h1>{{ user.get_full_name|default:user.username }}</h1>
+      <p><i class="fas fa-envelope"></i> {{ user.email }}</p>
+      <p><i class="fas fa-calendar-alt"></i> Member since {{ user.date_joined|date:"M Y" }}</p>
+    </div>
+  </div>
+
+  <h2 class="section-title" style="margin-top:2rem;">My Orders ({{ orders.count }})</h2>
+
+  {% if orders %}
+  <div class="orders-list">
+    {% for order in orders %}
+    <div class="order-card">
+      <div class="order-card-header">
+        <div>
+          <h3>Order #{{ order.id }}</h3>
+          <span>{{ order.created_at|date:"d M Y" }}</span>
+        </div>
+        <div class="status-badge status-{{ order.status }}">{{ order.status|title }}</div>
+      </div>
+      <div class="order-card-items">
+        {% for item in order.items.all %}
+        <div class="order-item-row">
+          <span>{{ item.quantity }}× {{ item.product.name }}</span>
+          <span>₹{{ item.subtotal }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="order-card-footer">
+        <span><i class="fas fa-map-marker-alt"></i> {{ order.city }}, {{ order.state }}</span>
+        <strong>Total: ₹{{ order.total_price }}</strong>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-box-open"></i>
+    <h3>No orders yet</h3>
+    <p>You haven't placed any orders. Start shopping!</p>
+    <a href="{% url 'home' %}" class="btn-primary">Shop Now</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

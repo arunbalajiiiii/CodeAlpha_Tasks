@@ -1,0 +1,134 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block title %}{{ product.name }} — ShopZone{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:2rem;">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}">Home</a>
+    <i class="fas fa-chevron-right"></i>
+    {% if product.category %}<a href="/?category={{ product.category.slug }}">{{ product.category.name }}</a><i class="fas fa-chevron-right"></i>{% endif %}
+    <span>{{ product.name }}</span>
+  </nav>
+
+  <!-- Product Detail -->
+  <div class="product-detail-grid">
+    <div class="product-detail-img">
+      {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" id="mainImg" />
+      {% else %}
+      <div class="product-img-placeholder large"><i class="fas fa-image"></i></div>
+      {% endif %}
+      {% if product.discount_percent > 0 %}
+      <div class="detail-badge-discount">{{ product.discount_percent }}% OFF</div>
+      {% endif %}
+    </div>
+
+    <div class="product-detail-info">
+      {% if product.category %}
+      <span class="product-category">{{ product.category.icon }} {{ product.category.name }}</span>
+      {% endif %}
+      <h1 class="detail-title">{{ product.name }}</h1>
+
+      <div class="detail-rating">
+        <span class="stars">★★★★☆</span>
+        <span class="rating-count">(128 reviews)</span>
+      </div>
+
+      <div class="detail-price">
+        <span class="price-current large">₹{{ product.price }}</span>
+        {% if product.original_price %}
+        <span class="price-original">₹{{ product.original_price }}</span>
+        <span class="price-save">Save ₹{{ product.original_price|floatformat:0 }}</span>
+        {% endif %}
+      </div>
+
+      <div class="detail-stock {% if product.stock > 5 %}in-stock{% else %}low-stock{% endif %}">
+        {% if product.stock > 0 %}
+        <i class="fas fa-check-circle"></i>
+        {% if product.stock <= 5 %}Only {{ product.stock }} left in stock!{% else %}In Stock{% endif %}
+        {% else %}
+        <i class="fas fa-times-circle"></i> Out of Stock
+        {% endif %}
+      </div>
+
+      <div class="detail-description">
+        <h3>Product Description</h3>
+        <p>{{ product.description }}</p>
+      </div>
+
+      {% if product.stock > 0 %}
+      <form method="POST" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+        {% csrf_token %}
+        <div class="qty-selector">
+          <label>Quantity:</label>
+          <div class="qty-control">
+            <button type="button" onclick="changeQty(-1)">−</button>
+            <input type="number" name="quantity" id="qtyInput" value="1" min="1" max="{{ product.stock }}" />
+            <button type="button" onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <button type="submit" class="btn-primary btn-lg">
+            <i class="fas fa-cart-plus"></i> Add to Cart
+          </button>
+          <a href="{% url 'cart' %}" class="btn-outline btn-lg">
+            <i class="fas fa-shopping-cart"></i> View Cart
+          </a>
+        </div>
+      </form>
+      {% else %}
+      <button class="btn-primary btn-lg" disabled>Out of Stock</button>
+      {% endif %}
+
+      <div class="detail-features">
+        <div class="feature-item"><i class="fas fa-truck"></i> Free delivery on orders above ₹499</div>
+        <div class="feature-item"><i class="fas fa-shield-alt"></i> Secure checkout</div>
+        <div class="feature-item"><i class="fas fa-undo"></i> 7-day easy returns</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  {% if related %}
+  <section class="section">
+    <h2 class="section-title">Related Products</h2>
+    <div class="products-grid">
+      {% for p in related %}
+      <div class="product-card">
+        <a href="{% url 'product_detail' p.slug %}" class="product-img-wrap">
+          {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.name }}" />
+          {% else %}<div class="product-img-placeholder"><i class="fas fa-image"></i></div>{% endif %}
+          {% if p.discount_percent > 0 %}<span class="badge-discount">-{{ p.discount_percent }}%</span>{% endif %}
+        </a>
+        <div class="product-info">
+          <h3 class="product-name"><a href="{% url 'product_detail' p.slug %}">{{ p.name }}</a></h3>
+          <div class="product-price">
+            <span class="price-current">₹{{ p.price }}</span>
+            {% if p.original_price %}<span class="price-original">₹{{ p.original_price }}</span>{% endif %}
+          </div>
+          <form method="POST" action="{% url 'add_to_cart' p.id %}">
+            {% csrf_token %}<input type="hidden" name="quantity" value="1" />
+            <button type="submit" class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function changeQty(delta) {
+  const input = document.getElementById('qtyInput');
+  let val = parseInt(input.value) + delta;
+  val = Math.max(1, Math.min(val, parseInt(input.max)));
+  input.value = val;
+}
+</script>
+{% endblock %}

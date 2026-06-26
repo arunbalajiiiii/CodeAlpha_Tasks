@@ -1,0 +1,198 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}ShopZone — Home{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">🔥 New Arrivals</div>
+    <h1>Discover Amazing Products<br/><span class="gradient-text">At Unbeatable Prices</span></h1>
+    <p>Shop thousands of products across electronics, fashion, home & more — delivered fast to your door.</p>
+    <div class="hero-actions">
+      <a href="#products" class="btn-primary">Shop Now <i class="fas fa-arrow-right"></i></a>
+      <a href="{% url 'register' %}" class="btn-outline">Join Free <i class="fas fa-user-plus"></i></a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><strong>10K+</strong><span>Products</span></div>
+      <div class="stat"><strong>50K+</strong><span>Customers</span></div>
+      <div class="stat"><strong>4.8★</strong><span>Rating</span></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-card floating">
+      <i class="fas fa-shopping-bag"></i>
+      <span>Fast Delivery</span>
+    </div>
+    <div class="hero-card floating delay-1">
+      <i class="fas fa-shield-alt"></i>
+      <span>Secure Payment</span>
+    </div>
+    <div class="hero-card floating delay-2">
+      <i class="fas fa-undo"></i>
+      <span>Easy Returns</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── CATEGORIES ── -->
+{% if categories %}
+<section class="section categories-section">
+  <div class="container">
+    <h2 class="section-title">Shop by Category</h2>
+    <div class="category-grid">
+      <a href="{% url 'home' %}" class="category-card {% if not current_category %}active{% endif %}">
+        <span class="cat-icon">🛍️</span>
+        <span>All</span>
+      </a>
+      {% for cat in categories %}
+      <a href="?category={{ cat.slug }}" class="category-card {% if current_category == cat.slug %}active{% endif %}">
+        <span class="cat-icon">{{ cat.icon }}</span>
+        <span>{{ cat.name }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── FEATURED ── -->
+{% if featured and not search_query and not current_category %}
+<section class="section featured-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">⭐ Featured Products</h2>
+      <a href="#products" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="products-grid">
+      {% for product in featured %}
+      <div class="product-card">
+        <a href="{% url 'product_detail' product.slug %}" class="product-img-wrap">
+          {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" />
+          {% else %}<div class="product-img-placeholder"><i class="fas fa-image"></i></div>{% endif %}
+          {% if product.discount_percent > 0 %}<span class="badge-discount">-{{ product.discount_percent }}%</span>{% endif %}
+          {% if product.featured %}<span class="badge-featured">Featured</span>{% endif %}
+        </a>
+        <div class="product-info">
+          {% if product.category %}<span class="product-category">{{ product.category.icon }} {{ product.category.name }}</span>{% endif %}
+          <h3 class="product-name"><a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a></h3>
+          <div class="product-price">
+            <span class="price-current">&#8377;{{ product.price }}</span>
+            {% if product.original_price %}<span class="price-original">&#8377;{{ product.original_price }}</span>{% endif %}
+          </div>
+          <form method="POST" action="{% url 'add_to_cart' product.id %}">
+            {% csrf_token %}<input type="hidden" name="quantity" value="1" />
+            <button type="submit" class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── ALL PRODUCTS ── -->
+<section class="section" id="products">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        {% if search_query %}
+          Search results for "{{ search_query }}"
+        {% elif current_category %}
+          {{ current_category|title }} Products
+        {% else %}
+          All Products
+        {% endif %}
+      </h2>
+      <span class="product-count">{{ products.count }} item{{ products.count|pluralize }}</span>
+    </div>
+
+    {% if products %}
+    <div class="products-grid" id="productsGrid">
+      {% for product in products %}
+      <div class="product-card" data-name="{{ product.name|lower }}">
+        <a href="{% url 'product_detail' product.slug %}" class="product-img-wrap">
+          {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" />
+          {% else %}
+          <div class="product-img-placeholder">
+            <i class="fas fa-image"></i>
+          </div>
+          {% endif %}
+          {% if product.discount_percent > 0 %}
+          <span class="badge-discount">-{{ product.discount_percent }}%</span>
+          {% endif %}
+          {% if product.featured %}
+          <span class="badge-featured">⭐ Featured</span>
+          {% endif %}
+        </a>
+        <div class="product-info">
+          {% if product.category %}
+          <span class="product-category">{{ product.category.icon }} {{ product.category.name }}</span>
+          {% endif %}
+          <h3 class="product-name">
+            <a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a>
+          </h3>
+          <div class="product-price">
+            <span class="price-current">₹{{ product.price }}</span>
+            {% if product.original_price %}
+            <span class="price-original">₹{{ product.original_price }}</span>
+            {% endif %}
+          </div>
+          {% if product.stock <= 5 %}
+          <span class="stock-warning">Only {{ product.stock }} left!</span>
+          {% endif %}
+          <form method="POST" action="{% url 'add_to_cart' product.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="quantity" value="1" />
+            <button type="submit" class="btn-add-cart">
+              <i class="fas fa-cart-plus"></i> Add to Cart
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-search"></i>
+      <h3>No products found</h3>
+      <p>Try a different search or browse all categories.</p>
+      <a href="{% url 'home' %}" class="btn-primary">Browse All</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ── TRUST BADGES ── -->
+<section class="trust-section">
+  <div class="container">
+    <div class="trust-grid">
+      <div class="trust-item">
+        <i class="fas fa-truck"></i>
+        <h4>Free Delivery</h4>
+        <p>On orders above ₹499</p>
+      </div>
+      <div class="trust-item">
+        <i class="fas fa-shield-alt"></i>
+        <h4>Secure Payments</h4>
+        <p>100% protected transactions</p>
+      </div>
+      <div class="trust-item">
+        <i class="fas fa-undo-alt"></i>
+        <h4>Easy Returns</h4>
+        <p>7-day hassle-free returns</p>
+      </div>
+      <div class="trust-item">
+        <i class="fas fa-headset"></i>
+        <h4>24/7 Support</h4>
+        <p>Always here to help</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
